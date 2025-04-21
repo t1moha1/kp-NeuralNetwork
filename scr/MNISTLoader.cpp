@@ -27,8 +27,7 @@ private:
         return result;
     }
 
-    // Загружает изображения из файла.
-    // Результат сохраняется в матрице images, где каждый столбец — отдельное изображение.
+
     bool loadImages(const std::string &filename, size_t maxExamples) {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs.is_open()) {
@@ -36,7 +35,7 @@ private:
             return false;
         }
         uint32_t magic = readBigEndian(ifs);
-        if (magic != 2051) { // MNIST magic number для изображений
+        if (magic != 2051) {
             std::cerr << "Неверный magic number для файла изображений: " << magic << std::endl;
             return false;
         }
@@ -64,8 +63,7 @@ private:
         return true;
     }
 
-    // Загружает метки из файла.
-    // Результат сохраняется в матрице labels, где каждый столбец – one-hot вектор длины 10.
+
     bool loadLabels(const std::string &filename, size_t maxExamples) {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs.is_open()) {
@@ -73,7 +71,7 @@ private:
             return false;
         }
         uint32_t magic = readBigEndian(ifs);
-        if (magic != 2049) { // MNIST magic number для меток
+        if (magic != 2049) {
             std::cerr << "Неверный magic number для файла меток: " << magic << std::endl;
             return false;
         }

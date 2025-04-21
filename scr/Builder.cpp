@@ -11,7 +11,7 @@ namespace NN {
         }
         ~Builder() = default;
 
-        Builder& addLayer(int inputSize, int outputSize, const NN::ActivationFunctions::Activation& activation) {
+        Builder& addLayer(int inputSize, int outputSize, const NN::Activation& activation) {
             network->addLayer(new Layer(inputSize, outputSize, activation));
             return *this;
         }

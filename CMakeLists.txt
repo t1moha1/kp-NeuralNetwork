@@ -10,7 +10,9 @@ add_executable(kp_NeuralNetwork scr/main.cpp
         scr/NeuralNetwork.cpp
         scr/MNISTLoader.cpp
         scr/Builder.cpp
-        scr/Layer.cpp)
+        scr/Layer.cpp
+        scr/Activation.cpp
+        scr/Loss.cpp)
 
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 

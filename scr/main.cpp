@@ -27,13 +27,13 @@ int main() {
     }
     std::cout << "Тестовые данные загружены\n";
 
-    const NN::ActivationFunctions::Activation sigmoidActivation{NN::ActivationFunctions::sigmoid,
+    const NN::Activation sigmoidActivation{NN::ActivationFunctions::sigmoid,
         NN::ActivationFunctions::softmax_prime};
 
-    const NN::ActivationFunctions::Activation softmaxActivation{NN::ActivationFunctions::softmax,
+    const NN::Activation softmaxActivation{NN::ActivationFunctions::softmax,
         NN::ActivationFunctions::softmax_prime};
 
-    const NN::LossFunctions::Loss loss{NN::LossFunctions::crossEntropyLossFunction,
+    const NN::Loss loss{NN::LossFunctions::crossEntropyLossFunction,
         NN::LossFunctions::crossEntropyLossDerivative};
 
 

@@ -2,14 +2,15 @@
 // Created by Тимофей Тулинов on 26.03.2025.
 //
 #include "../include/Layer.h"
+
 namespace NN {
-    Layer::Layer(const Eigen::MatrixXd &weights, const Eigen::VectorXd &biases, NN::ActivationFunctions::Activation activation) :
+    Layer::Layer(const Eigen::MatrixXd &weights, const Eigen::VectorXd &biases, NN::Activation activation) :
     weights(weights), biases(biases), activation(std::move(activation)) {} //???
 
-    Layer::Layer(const int input_size, const int output_size, NN::ActivationFunctions::Activation activation) : activation(std::move(activation)) {
+    Layer::Layer(const int input_size, const int output_size, NN::Activation activation) : activation(std::move(activation)) {
         std::random_device rd;
         std::mt19937 gen(rd());
-        // Нормальное распределение с математическим ожиданием 0 и стандартным отклонением 1
+
         std::normal_distribution<> d(0, 1);
 
         double lower = -0.5;
@@ -43,13 +44,9 @@ namespace NN {
 
     Eigen::MatrixXd Layer::backward(const Eigen::MatrixXd& input, const Eigen::MatrixXd& Z, const Eigen::MatrixXd& gradOutput, double learningRate) {
         const int batchSize = input.cols();
-
         Eigen::MatrixXd dZ = gradOutput.array() * activation.derivative(Z).array();
-
         Eigen::MatrixXd dW = (dZ * input.transpose()) / batchSize;
-
         Eigen::VectorXd db = dZ.rowwise().sum() / batchSize;
-
         weights -= learningRate * dW;
         biases  -= learningRate * db;
         Eigen::MatrixXd dA_prev = weights.transpose() * dZ;
