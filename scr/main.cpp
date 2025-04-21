@@ -4,28 +4,40 @@
 
 
 int main() {
-    Activation sigmoidActivation{sigmoid, softmax_prime};
+    const std::string train_data_img_path = "../data/train-images.idx3-ubyte";
+    const std::string train_data_label_path = "../data/train-images.idx3-ubyte";
+    const int train_size = 60000;
+    const std::string test_data_img_path = "../data/t10k-images.idx3-ubyte";
+    const std::string test_data_label_path = "../data/t10k-labels.idx1-ubyte";
+    const int test_size = 10000;
 
-    Activation softmaxActivation{softmax, softmax_prime};
-
-    Loss loss{crossEntropyLossFunction, crossEntropyLossDerivative};
 
     MNISTLoader trainLoader;
-    if (!trainLoader.loadData("../data/train-images.idx3-ubyte", "../data/train-labels.idx1-ubyte", 60000)) {
-        std::cerr << "Ошибка загрузки обучающих данных" << std::endl;
+    if (!trainLoader.loadData(train_data_img_path, train_data_label_path, train_size)) {
+        std::cerr << "Ошибка загрузки обучающих данных" << "\n";;
         return -1;
     }
     std::cout << "Обучающие данные загружены\n";
 
     //Загрузка тестовых данных
     MNISTLoader testLoader;
-    if (!testLoader.loadData("../data/t10k-images.idx3-ubyte", "../data/t10k-labels.idx1-ubyte", 10000)) {
-        std::cerr << "Ошибка загрузки тестовых данных" << std::endl;
+    if (!testLoader.loadData(test_data_img_path, test_data_label_path, test_size)) {
+        std::cerr << "Ошибка загрузки тестовых данных" << "\n";
         return -1;
     }
     std::cout << "Тестовые данные загружены\n";
 
-    Builder builder;
+    const NN::ActivationFunctions::Activation sigmoidActivation{NN::ActivationFunctions::sigmoid,
+        NN::ActivationFunctions::softmax_prime};
+
+    const NN::ActivationFunctions::Activation softmaxActivation{NN::ActivationFunctions::softmax,
+        NN::ActivationFunctions::softmax_prime};
+
+    const NN::LossFunctions::Loss loss{NN::LossFunctions::crossEntropyLossFunction,
+        NN::LossFunctions::crossEntropyLossDerivative};
+
+
+    NN::Builder builder;
     builder.addLayer(784, 128, sigmoidActivation);
     builder.addLayer(128, 64, sigmoidActivation);
     builder.addLayer(64, 10, softmaxActivation);
@@ -37,6 +49,5 @@ int main() {
     std::cout << network->evaluate(testLoader.images, testLoader.labels);
 
     delete network;
-
     return 0;
 }

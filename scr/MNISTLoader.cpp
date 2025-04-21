@@ -10,19 +10,14 @@
 
 class MNISTLoader {
 public:
-    // Изображения хранятся в матрице размера (numPixels, numExamples)
     Eigen::MatrixXd images;
-    // Метки хранятся в матрице размера (10, numExamples) – one-hot представление
     Eigen::MatrixXd labels;
 
-    // Загружает данные из файлов изображений и меток.
-    // Если maxExamples == 0, загружаются все доступные примеры.
     bool loadData(const std::string &imageFilename, const std::string &labelFilename, size_t maxExamples = 0) {
         return loadImages(imageFilename, maxExamples) && loadLabels(labelFilename, maxExamples);
     }
 
 private:
-    // Вспомогательная функция для чтения 32-битного числа в формате big-endian
     uint32_t readBigEndian(std::ifstream &ifs) {
         uint32_t result = 0;
         unsigned char bytes[4];
