@@ -1,6 +1,6 @@
 
 #include "../include/Activation.h"
-#include <Eigen/Dense>
+
 
 namespace NN {
     namespace ActivationFunctions {
@@ -36,6 +36,28 @@ namespace NN {
 
         Eigen::MatrixXd relu_prime(const Eigen::MatrixXd& z) {
             return (z.array() > 0.0).cast<double>().matrix();
+        }
+    }
+
+
+    Activation createActivation(ActivationType type) {
+        switch (type) {
+            case ActivationType::Sigmoid:
+                return {type,
+                                  ActivationFunctions::sigmoid,
+                                  ActivationFunctions::sigmoid_prime};
+            case ActivationType::Softmax:
+                return {type,
+                                  ActivationFunctions::softmax,
+                                  ActivationFunctions::softmax_prime};
+            case ActivationType::Relu:
+                return {type,
+                                  ActivationFunctions::relu,
+                                  ActivationFunctions::relu_prime};
+            default:
+                    return {ActivationType::Sigmoid,
+                                      ActivationFunctions::sigmoid,
+                                      ActivationFunctions::sigmoid_prime};
         }
     }
 }

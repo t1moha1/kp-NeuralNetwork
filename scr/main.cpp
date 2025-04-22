@@ -1,6 +1,6 @@
 #include <iostream>
-#include "MNISTLoader.cpp"
-#include "Builder.cpp"
+#include "../include/MNISTLoader.h"
+#include "../include/Builder.h"
 
 
 int main() {
@@ -12,44 +12,43 @@ int main() {
     const int test_size = 10000;
 
 
-    MNISTLoader trainLoader;
-    if (!trainLoader.loadData(train_data_img_path, train_data_label_path, train_size)) {
-        std::cerr << "Ошибка загрузки обучающих данных" << "\n";;
-        return -1;
-    }
+    NN::MNISTLoader trainLoader;
+    trainLoader.loadData(train_data_img_path, train_data_label_path, train_size);
     std::cout << "Обучающие данные загружены\n";
 
-    //Загрузка тестовых данных
-    MNISTLoader testLoader;
-    if (!testLoader.loadData(test_data_img_path, test_data_label_path, test_size)) {
-        std::cerr << "Ошибка загрузки тестовых данных" << "\n";
-        return -1;
-    }
+    NN::MNISTLoader testLoader;
+    testLoader.loadData(test_data_img_path, test_data_label_path, test_size);
     std::cout << "Тестовые данные загружены\n";
 
-    const NN::Activation sigmoidActivation{NN::ActivationFunctions::sigmoid,
-        NN::ActivationFunctions::sigmoid_prime};
+    const NN::Activation sigmoidActivation = NN::createActivation(NN::ActivationType::Sigmoid);
 
-    const NN::Activation softmaxActivation{NN::ActivationFunctions::softmax,
-        NN::ActivationFunctions::softmax_prime};
+    const NN::Activation softmaxActivation = NN::createActivation(NN::ActivationType::Softmax);
 
-    const NN::Activation reluActivation{NN::ActivationFunctions::relu, NN::ActivationFunctions::relu_prime};
+    const NN::Activation reluActivation = NN::createActivation(NN::ActivationType::Relu);
 
-    const NN::Loss loss{NN::LossFunctions::crossEntropyLossFunction,
-        NN::LossFunctions::crossEntropyLossDerivative};
+    const NN::Loss loss = NN::createLoss(NN::LossType::CrossEntropy);
 
 
-    NN::Builder builder;
-    builder.addLayer(784, 128, sigmoidActivation);
-    builder.addLayer(128, 64, sigmoidActivation);
-    builder.addLayer(64, 10, softmaxActivation);
+     NN::Builder builder;
+     builder.addLayer(784, 128, sigmoidActivation);
+     builder.addLayer(128, 64, sigmoidActivation);
+     builder.addLayer(64, 10, softmaxActivation);
 
-    auto network = builder.build();
+     auto network = builder.build();
 
-    network->train(trainLoader.images, trainLoader.labels, 10, 256, 0.01, loss);
+     network->train(trainLoader.images, trainLoader.labels, 3, 256, 0.01, loss);
 
-    std::cout << network->evaluate(testLoader.images, testLoader.labels);
+     std::cout << network->evaluate(testLoader.images, testLoader.labels);
+
+     network->save("network_parameters.txt");
 
     delete network;
+
+    //  auto net =  new NN::NeuralNetwork();
+    //
+    // net->load("network_parameters.txt");
+    //
+    // std::cout << net->evaluate(testLoader.images, testLoader.labels);
+
     return 0;
 }

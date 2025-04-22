@@ -1,84 +1,160 @@
 #include "../include/NeuralNetwork.h"
-#include <iostream>
 
 namespace NN {
 
 NeuralNetwork::~NeuralNetwork() {
-    for (auto layer : layers)
-        delete layer;
+  for (auto layer : layers)
+    delete layer;
 }
 
-void NeuralNetwork::addLayer(Layer* layer) {
-    layers.push_back(layer);
+void NeuralNetwork::addLayer(Layer *layer) { layers.push_back(layer); }
+
+Eigen::MatrixXd NeuralNetwork::predict(const Eigen::MatrixXd &X) const {
+  Eigen::MatrixXd output = X;
+  Eigen::MatrixXd Z;
+  for (auto layer : layers)
+    output = layer->forward(output, Z);
+  return output;
 }
 
-Eigen::MatrixXd NeuralNetwork::predict(const Eigen::MatrixXd& X) const {
-    Eigen::MatrixXd output = X;
-    Eigen::MatrixXd Z;
-    for (auto layer : layers)
-        output = layer->forward(output, Z);
-    return output;
+void NeuralNetwork::train(const Eigen::MatrixXd &X, const Eigen::MatrixXd &y,
+                          int epochs, int batchSize, double learningRate,
+                          const Loss &lossFunction) {
+  int numSamples = X.cols();
+  AdamOptimizer optimizer(layers.size(), learningRate);
+
+  for (int epoch = 0; epoch < epochs; ++epoch) {
+    double totalLoss = 0;
+    int totalCount = 0;
+
+    for (int start = 0; start < numSamples; start += batchSize) {
+      int bs = std::min(batchSize, numSamples - start);
+      Eigen::MatrixXd batchX = X.middleCols(start, bs);
+      Eigen::MatrixXd batchY = y.middleCols(start, bs);
+
+      std::vector<Eigen::MatrixXd> activations{batchX};
+      std::vector<Eigen::MatrixXd> Zs;
+
+      for (auto layer : layers) {
+        Eigen::MatrixXd Z;
+        activations.push_back(layer->forward(activations.back(), Z));
+        Zs.push_back(Z);
+      }
+
+      Eigen::MatrixXd output = activations.back();
+      double batchLoss = lossFunction.loss(output, batchY);
+      totalLoss += batchLoss * bs;
+      totalCount += bs;
+
+      Eigen::MatrixXd grad = lossFunction.derivative(output, batchY);
+      for (int i = layers.size() - 1; i >= 0; --i) {
+        Eigen::MatrixXd dW;
+        Eigen::VectorXd db;
+        grad = layers[i]->backward(activations[i], Zs[i], grad, dW, db);
+        optimizer.update(i, layers[i]->getWeights(), layers[i]->getBiases(), dW,
+                         db);
+      }
+    }
+
+    std::cout << "Epoch " << epoch + 1 << ", Loss: " << totalLoss / totalCount
+              << "\n";
+  }
 }
 
-void NeuralNetwork::train(const Eigen::MatrixXd& X,
-                          const Eigen::MatrixXd& y,
-                          int epochs,
-                          int batchSize,
-                          double learningRate,
-                          const Loss& lossFunction) {
-    int numSamples = X.cols();
-    AdamOptimizer optimizer(layers.size(), learningRate);
+double NeuralNetwork::evaluate(const Eigen::MatrixXd &X,
+                               const Eigen::MatrixXd &y) {
+  Eigen::MatrixXd pred = predict(X);
+  int correct = 0;
+  for (int i = 0; i < pred.cols(); ++i) {
+    Eigen::Index pi, yi;
+    pred.col(i).maxCoeff(&pi);
+    y.col(i).maxCoeff(&yi);
+    if (pi == yi)
+      ++correct;
+  }
+  return static_cast<double>(correct) / pred.cols() * 100;
+}
 
-    for (int epoch = 0; epoch < epochs; ++epoch) {
-        double totalLoss = 0;
-        int totalCount = 0;
+void NeuralNetwork::save(const std::string &filename) const {
+    std::ofstream ofs(filename);
 
-        for (int start = 0; start < numSamples; start += batchSize) {
-            int bs = std::min(batchSize, numSamples - start);
-            Eigen::MatrixXd batchX = X.middleCols(start, bs);
-            Eigen::MatrixXd batchY = y.middleCols(start, bs);
+    assert(ofs && "Cannot open file for saving");
+    assert(!layers.empty() && "No layers to save");
 
-            std::vector<Eigen::MatrixXd> activations{batchX};
-            std::vector<Eigen::MatrixXd> Zs;
+    ofs << layers.size() << std::endl;
+    for (size_t i = 0; i < layers.size(); ++i) {
+        const auto &layer = layers[i];
 
-            for (auto layer : layers) {
-                Eigen::MatrixXd Z;
-                activations.push_back(layer->forward(activations.back(), Z));
-                Zs.push_back(Z);
+        assert(layer && "Layer pointer is null");
+
+        const Eigen::MatrixXd &W = layer->getWeights();
+        const Eigen::VectorXd &b = layer->getBiases();
+
+        assert(W.rows() > 0 && W.cols() > 0 && "Invalid weight matrix size");
+        assert(b.size() == W.rows() && "Bias vector size must match weight rows");
+
+        ofs << static_cast<int>(layer->getActivation().type)
+            << " " << W.rows() << " " << W.cols() << "\n";
+
+        for (int r = 0; r < W.rows(); ++r) {
+            for (int c = 0; c < W.cols(); ++c) {
+                ofs << W(r, c) << " ";
             }
+            ofs << "\n";
+        }
+        for (int idx = 0; idx < b.size(); ++idx) {
+            ofs << b(idx) << " ";
+        }
+        ofs << "\n";
+    }
+}
 
-            Eigen::MatrixXd output = activations.back();
-            double batchLoss = lossFunction.loss(output, batchY);
-            totalLoss += batchLoss * bs;
-            totalCount += bs;
+void NeuralNetwork::load(const std::string &filename) {
+    std::ifstream ifs(filename);
 
-            Eigen::MatrixXd grad = lossFunction.derivative(output, batchY);
-            for (int i = layers.size() - 1; i >= 0; --i) {
-                Eigen::MatrixXd dW;
-                Eigen::VectorXd db;
-                grad = layers[i]->backward(activations[i], Zs[i], grad, dW, db);
-                optimizer.update(i, layers[i]->getWeights(), layers[i]->getBiases(), dW, db);
+    assert(ifs && "Cannot open file for loading");
+
+    for (auto l : layers) {
+        delete l;
+    }
+    layers.clear();
+
+    size_t numLayers = 0;
+    ifs >> numLayers;
+
+    assert(ifs && "Invalid format: cannot read layer count");
+    assert(numLayers > 0 && "Number of layers must be positive");
+
+    for (size_t i = 0; i < numLayers; ++i) {
+        int typeInt = 0;
+        int rows = 0, cols = 0;
+        ifs >> typeInt >> rows >> cols;
+
+        assert(ifs && "Invalid format at layer header");
+        assert(rows > 0 && cols > 0 && "Invalid matrix dimensions");
+
+        auto actType = static_cast<ActivationType>(typeInt);
+
+        assert(actType >= ActivationType::Relu && actType <= ActivationType::Sigmoid
+               && "Unknown activation type");
+
+        Eigen::MatrixXd W(rows, cols);
+        for (int r = 0; r < rows; ++r) {
+            for (int c = 0; c < cols; ++c) {
+                ifs >> W(r, c);
+                assert(ifs && "Invalid weight data");
             }
         }
 
-        std::cout << "Epoch " << epoch + 1
-                  << ", Loss: " << totalLoss / totalCount
-                  << std::endl;
+        Eigen::VectorXd b(rows);
+        for (int idx = 0; idx < rows; ++idx) {
+            ifs >> b(idx);
+            assert(ifs && "Invalid bias data");
+        }
+
+        Activation act = NN::createActivation(actType);
+        layers.push_back(new Layer(W, b, act));
     }
 }
 
-double NeuralNetwork::evaluate(const Eigen::MatrixXd& X,
-                               const Eigen::MatrixXd& y) {
-    Eigen::MatrixXd pred = predict(X);
-    int correct = 0;
-    for (int i = 0; i < pred.cols(); ++i) {
-        Eigen::Index pi, yi;
-        pred.col(i).maxCoeff(&pi);
-        y.col(i).maxCoeff(&yi);
-        if (pi == yi)
-            ++correct;
-    }
-    return static_cast<double>(correct) / pred.cols() * 100;
-}
-
-}
+} // namespace NN

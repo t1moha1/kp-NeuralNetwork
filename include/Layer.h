@@ -10,6 +10,7 @@ namespace NN {
     public:
         Eigen::MatrixXd& getWeights() {return weights;}
         Eigen::VectorXd& getBiases() {return biases;}
+        const Activation& getActivation() const { return activation; }
 
         Layer(const Eigen::MatrixXd& weights,
               const Eigen::VectorXd& biases,

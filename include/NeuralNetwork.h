@@ -6,6 +6,8 @@
 #include "Layer.h"
 #include "Loss.h"
 #include "Optimizer.h"
+#include <iostream>
+#include <fstream>
 
 namespace NN {
 
@@ -26,6 +28,9 @@ namespace NN {
 
         double evaluate(const Eigen::MatrixXd& X,
                         const Eigen::MatrixXd& y);
+
+        void save(const std::string& filename) const;
+        void load(const std::string& filename);
 
     private:
         std::vector<Layer*> layers;

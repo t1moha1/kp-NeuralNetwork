@@ -5,6 +5,8 @@
 #include <functional>
 
 namespace NN {
+    enum class ActivationType { Sigmoid = 0, Softmax = 1, Relu = 2 };
+
     namespace ActivationFunctions {
 
         Eigen::MatrixXd sigmoid(const Eigen::MatrixXd& z);
@@ -19,9 +21,12 @@ namespace NN {
     }
 
     struct Activation {
+        ActivationType type;
         std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> func;
         std::function<Eigen::MatrixXd(const Eigen::MatrixXd&)> derivative;
     };
+
+    Activation createActivation(ActivationType type);
 
 }
 

@@ -1,100 +1,77 @@
-#ifndef MNISTLOADER_H
-#define MNISTLOADER_H
-
-#include <Eigen/Dense>
-#include <fstream>
+#include "../include/MNISTLoader.h"
+#include <cassert>
 #include <iostream>
-#include <vector>
-#include <string>
-#include <cstdint>
 
-class MNISTLoader {
-public:
-    Eigen::MatrixXd images;
-    Eigen::MatrixXd labels;
+namespace NN {
 
-    bool loadData(const std::string &imageFilename, const std::string &labelFilename, size_t maxExamples = 0) {
-        return loadImages(imageFilename, maxExamples) && loadLabels(labelFilename, maxExamples);
+uint32_t MNISTLoader::readBigEndian(std::ifstream &ifs) {
+    unsigned char bytes[4];
+    ifs.read(reinterpret_cast<char*>(bytes), 4);
+    assert(ifs.gcount() == 4 && "Failed to read 4 bytes for big-endian integer");
+    return (uint32_t(bytes[0]) << 24) |
+           (uint32_t(bytes[1]) << 16) |
+           (uint32_t(bytes[2]) << 8)  |
+           uint32_t(bytes[3]);
+}
+
+void MNISTLoader::loadData(const std::string &imageFilename, const std::string &labelFilename, size_t maxExamples) {
+    assert(!imageFilename.empty() && "Image filename is empty");
+    assert(!labelFilename.empty() && "Label filename is empty");
+    loadImages(imageFilename, maxExamples);
+    loadLabels(labelFilename, maxExamples);
+}
+
+void MNISTLoader::loadImages(const std::string &filename, size_t maxExamples) {
+    std::ifstream ifs(filename, std::ios::binary);
+    assert(ifs.is_open() && "Cannot open image file");
+
+    uint32_t magic = readBigEndian(ifs);
+    assert(magic == 2051 && "Invalid magic number for image file");
+
+    uint32_t numImages = readBigEndian(ifs);
+    uint32_t numRows   = readBigEndian(ifs);
+    uint32_t numCols   = readBigEndian(ifs);
+    size_t imageSize   = static_cast<size_t>(numRows) * numCols;
+    uint32_t toLoad    = (maxExamples > 0 && maxExamples < numImages)
+                             ? static_cast<uint32_t>(maxExamples)
+                             : numImages;
+
+    images.resize(imageSize, toLoad);
+
+    for (uint32_t i = 0; i < toLoad; ++i) {
+        std::vector<unsigned char> buffer(imageSize);
+        ifs.read(reinterpret_cast<char*>(buffer.data()), imageSize);
+        assert(ifs.gcount() == static_cast<std::streamsize>(imageSize) && "Failed to read full image data");
+
+        for (size_t j = 0; j < imageSize; ++j) {
+            images(j, i) = static_cast<double>(buffer[j]) / 255.0;
+        }
     }
+}
 
-private:
-    uint32_t readBigEndian(std::ifstream &ifs) {
-        uint32_t result = 0;
-        unsigned char bytes[4];
-        ifs.read(reinterpret_cast<char*>(bytes), 4);
-        result = (uint32_t(bytes[0]) << 24) | (uint32_t(bytes[1]) << 16) |
-                 (uint32_t(bytes[2]) << 8)  | uint32_t(bytes[3]);
-        return result;
+void MNISTLoader::loadLabels(const std::string &filename, size_t maxExamples) {
+    std::ifstream ifs(filename, std::ios::binary);
+    assert(ifs.is_open() && "Cannot open label file");
+
+    uint32_t magic = readBigEndian(ifs);
+    assert(magic == 2049 && "Invalid magic number for label file");
+
+    uint32_t numLabels = readBigEndian(ifs);
+    uint32_t toLoad    = (maxExamples > 0 && maxExamples < numLabels)
+                             ? static_cast<uint32_t>(maxExamples)
+                             : numLabels;
+
+    labels.resize(10, toLoad);
+    labels.setZero();
+
+    for (uint32_t i = 0; i < toLoad; ++i) {
+        unsigned char label;
+        ifs.read(reinterpret_cast<char*>(&label), 1);
+        assert(ifs.gcount() == 1 && "Failed to read label byte");
+        assert(label < 10 && "Label value out of range");
+
+        labels(static_cast<int>(label), i) = 1.0;
     }
+}
 
-
-    bool loadImages(const std::string &filename, size_t maxExamples) {
-        std::ifstream ifs(filename, std::ios::binary);
-        if (!ifs.is_open()) {
-            std::cerr << "Не удалось открыть файл изображений: " << filename << std::endl;
-            return false;
-        }
-        uint32_t magic = readBigEndian(ifs);
-        if (magic != 2051) {
-            std::cerr << "Неверный magic number для файла изображений: " << magic << std::endl;
-            return false;
-        }
-        uint32_t numImages = readBigEndian(ifs);
-        uint32_t numRows = readBigEndian(ifs);
-        uint32_t numCols = readBigEndian(ifs);
-        size_t imageSize = numRows * numCols;
-        uint32_t numImagesToLoad = (maxExamples > 0 && maxExamples < numImages)
-                                        ? static_cast<uint32_t>(maxExamples)
-                                        : numImages;
-
-        images.resize(imageSize, numImagesToLoad);
-
-        for (uint32_t i = 0; i < numImagesToLoad; i++) {
-            std::vector<unsigned char> buffer(imageSize);
-            ifs.read(reinterpret_cast<char*>(buffer.data()), imageSize);
-            if (ifs.gcount() != static_cast<std::streamsize>(imageSize)) {
-                std::cerr << "Ошибка чтения данных для изображения " << i << std::endl;
-                return false;
-            }
-            for (size_t j = 0; j < imageSize; j++) {
-                images(j, i) = static_cast<double>(buffer[j]) / 255.0;
-            }
-        }
-        return true;
-    }
-
-
-    bool loadLabels(const std::string &filename, size_t maxExamples) {
-        std::ifstream ifs(filename, std::ios::binary);
-        if (!ifs.is_open()) {
-            std::cerr << "Не удалось открыть файл меток: " << filename << std::endl;
-            return false;
-        }
-        uint32_t magic = readBigEndian(ifs);
-        if (magic != 2049) {
-            std::cerr << "Неверный magic number для файла меток: " << magic << std::endl;
-            return false;
-        }
-        uint32_t numLabels = readBigEndian(ifs);
-        uint32_t numLabelsToLoad = (maxExamples > 0 && maxExamples < numLabels)
-                                        ? static_cast<uint32_t>(maxExamples)
-                                        : numLabels;
-
-
-        labels.resize(10, numLabelsToLoad);
-        labels.setZero();
-
-        for (uint32_t i = 0; i < numLabelsToLoad; i++) {
-            unsigned char label = 0;
-            ifs.read(reinterpret_cast<char*>(&label), 1);
-            if (ifs.gcount() != 1) {
-                std::cerr << "Ошибка чтения метки " << i << std::endl;
-                return false;
-            }
-            labels(static_cast<int>(label), i) = 1.0;
-        }
-        return true;
-    }
-};
-
-#endif // MNISTLOADER_H
+} // namespace NN

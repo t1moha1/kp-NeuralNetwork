@@ -28,4 +28,22 @@ namespace NN {
             return (predictions - targets) / numExamples;
         }
     }
+
+     Loss createLoss(LossType type) {
+        switch (type) {
+            case LossType::MSE:
+                return {type,
+                                  LossFunctions::mseLossFunction,
+                                  LossFunctions::mseLossDerivative};
+            case LossType::CrossEntropy:
+                return {type,
+                                LossFunctions::crossEntropyLossFunction,
+                                LossFunctions::crossEntropyLossDerivative};
+            default:
+                return {LossType::MSE,
+                                  LossFunctions::mseLossFunction,
+                                  LossFunctions::mseLossDerivative};
+        }
+    }
+
 }
