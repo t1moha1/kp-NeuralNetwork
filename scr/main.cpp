@@ -5,7 +5,7 @@
 
 int main() {
     const std::string train_data_img_path = "../data/train-images.idx3-ubyte";
-    const std::string train_data_label_path = "../data/train-images.idx3-ubyte";
+    const std::string train_data_label_path = "../data/train-labels.idx1-ubyte";
     const int train_size = 60000;
     const std::string test_data_img_path = "../data/t10k-images.idx3-ubyte";
     const std::string test_data_label_path = "../data/t10k-labels.idx1-ubyte";
@@ -33,6 +33,8 @@ int main() {
     const NN::Activation softmaxActivation{NN::ActivationFunctions::softmax,
         NN::ActivationFunctions::softmax_prime};
 
+    const NN::Activation reluActivation{NN::ActivationFunctions::relu, NN::ActivationFunctions::relu_prime};
+
     const NN::Loss loss{NN::LossFunctions::crossEntropyLossFunction,
         NN::LossFunctions::crossEntropyLossDerivative};
 
@@ -44,7 +46,7 @@ int main() {
 
     auto network = builder.build();
 
-    network->train(trainLoader.images, trainLoader.labels, 10, 10, 0.05, loss);
+    network->train(trainLoader.images, trainLoader.labels, 10, 256, 0.01, loss);
 
     std::cout << network->evaluate(testLoader.images, testLoader.labels);
 

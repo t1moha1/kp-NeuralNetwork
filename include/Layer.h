@@ -1,6 +1,3 @@
-//
-// Created by Тимофей Тулинов on 26.03.2025.
-//
 #ifndef LAYER_H
 #define LAYER_H
 
@@ -10,16 +7,32 @@
 
 namespace NN {
     class Layer {
+    public:
+        Eigen::MatrixXd& getWeights() {return weights;}
+        Eigen::VectorXd& getBiases() {return biases;}
+
+        Layer(const Eigen::MatrixXd& weights,
+              const Eigen::VectorXd& biases,
+              Activation activation);
+        Layer(int input_size,
+              int output_size,
+              Activation activation);
+
+        Eigen::MatrixXd forward(const Eigen::MatrixXd& input,
+                                Eigen::MatrixXd& Z) const;
+
+        Eigen::MatrixXd backward(const Eigen::MatrixXd& input,
+                                 const Eigen::MatrixXd& Z,
+                                 const Eigen::MatrixXd& gradOutput,
+                                 Eigen::MatrixXd& dW,
+                                 Eigen::VectorXd& db) const;
+
+    private:
         Eigen::MatrixXd weights;
         Eigen::VectorXd biases;
-        NN::Activation activation;
-
-    public:
-        Layer(const Eigen::MatrixXd& weights, const Eigen::VectorXd& biases, NN::Activation activation);
-        Layer(int input_size, int output_size, NN::Activation activation);
-
-        Eigen::MatrixXd forward(const Eigen::MatrixXd& input, Eigen::MatrixXd& Z) const;
-        Eigen::MatrixXd backward(const Eigen::MatrixXd& input, const Eigen::MatrixXd& Z, const Eigen::MatrixXd& gradOutput, double learningRate);
+        Activation activation;
     };
 }
-#endif //LAYER_H
+
+#endif // LAYER_H
+

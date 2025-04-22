@@ -1,7 +1,7 @@
 //
 // Created by Тимофей Тулинов on 28.03.2025.
 //
-#include "NeuralNetwork.cpp"
+#include "../include/NeuralNetwork.h"
 namespace NN {
     class Builder {
         NeuralNetwork* network;
