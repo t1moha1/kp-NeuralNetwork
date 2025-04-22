@@ -10,19 +10,14 @@
 
 class MNISTLoader {
 public:
-    // Изображения хранятся в матрице размера (numPixels, numExamples)
     Eigen::MatrixXd images;
-    // Метки хранятся в матрице размера (10, numExamples) – one-hot представление
     Eigen::MatrixXd labels;
 
-    // Загружает данные из файлов изображений и меток.
-    // Если maxExamples == 0, загружаются все доступные примеры.
     bool loadData(const std::string &imageFilename, const std::string &labelFilename, size_t maxExamples = 0) {
         return loadImages(imageFilename, maxExamples) && loadLabels(labelFilename, maxExamples);
     }
 
 private:
-    // Вспомогательная функция для чтения 32-битного числа в формате big-endian
     uint32_t readBigEndian(std::ifstream &ifs) {
         uint32_t result = 0;
         unsigned char bytes[4];
@@ -32,8 +27,7 @@ private:
         return result;
     }
 
-    // Загружает изображения из файла.
-    // Результат сохраняется в матрице images, где каждый столбец — отдельное изображение.
+
     bool loadImages(const std::string &filename, size_t maxExamples) {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs.is_open()) {
@@ -41,7 +35,7 @@ private:
             return false;
         }
         uint32_t magic = readBigEndian(ifs);
-        if (magic != 2051) { // MNIST magic number для изображений
+        if (magic != 2051) {
             std::cerr << "Неверный magic number для файла изображений: " << magic << std::endl;
             return false;
         }
@@ -69,8 +63,7 @@ private:
         return true;
     }
 
-    // Загружает метки из файла.
-    // Результат сохраняется в матрице labels, где каждый столбец – one-hot вектор длины 10.
+
     bool loadLabels(const std::string &filename, size_t maxExamples) {
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs.is_open()) {
@@ -78,7 +71,7 @@ private:
             return false;
         }
         uint32_t magic = readBigEndian(ifs);
-        if (magic != 2049) { // MNIST magic number для меток
+        if (magic != 2049) {
             std::cerr << "Неверный magic number для файла меток: " << magic << std::endl;
             return false;
         }
