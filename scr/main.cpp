@@ -28,7 +28,7 @@ int main() {
     std::cout << "Тестовые данные загружены\n";
 
     const NN::Activation sigmoidActivation{NN::ActivationFunctions::sigmoid,
-        NN::ActivationFunctions::softmax_prime};
+        NN::ActivationFunctions::sigmoid_prime};
 
     const NN::Activation softmaxActivation{NN::ActivationFunctions::softmax,
         NN::ActivationFunctions::softmax_prime};
