@@ -29,26 +29,26 @@ int main() {
     const NN::Loss loss = NN::createLoss(NN::LossType::CrossEntropy);
 
 
-     NN::Builder builder;
-     builder.addLayer(784, 128, sigmoidActivation);
-     builder.addLayer(128, 64, sigmoidActivation);
-     builder.addLayer(64, 10, softmaxActivation);
-
-     auto network = builder.build();
-
-     network->train(trainLoader.images, trainLoader.labels, 3, 256, 0.01, loss);
-
-     std::cout << network->evaluate(testLoader.images, testLoader.labels);
-
-     network->save("network_parameters.txt");
-
-    delete network;
-
-    //  auto net =  new NN::NeuralNetwork();
+    //  NN::Builder builder;
+    //  builder.addLayer(784, 128, sigmoidActivation);
+    //  builder.addLayer(128, 64, sigmoidActivation);
+    //  builder.addLayer(64, 10, softmaxActivation);
     //
-    // net->load("network_parameters.txt");
+    //  auto network = builder.build();
     //
-    // std::cout << net->evaluate(testLoader.images, testLoader.labels);
+    //  network->train(trainLoader.images, trainLoader.labels, 3, 256, 0.01, loss);
+    //
+    //  std::cout << network->evaluate(testLoader.images, testLoader.labels);
+    //
+    //  network->save("network_parameters.txt");
+    //
+    // delete network;
+
+     auto net =  new NN::NeuralNetwork();
+
+    net->load("network_parameters.txt");
+
+    std::cout << net->evaluate(testLoader.images, testLoader.labels);
 
     return 0;
 }

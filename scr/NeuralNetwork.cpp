@@ -135,7 +135,7 @@ void NeuralNetwork::load(const std::string &filename) {
 
         auto actType = static_cast<ActivationType>(typeInt);
 
-        assert(actType >= ActivationType::Relu && actType <= ActivationType::Sigmoid
+        assert(actType >= ActivationType::Sigmoid && actType <= ActivationType::Relu
                && "Unknown activation type");
 
         Eigen::MatrixXd W(rows, cols);
