@@ -11,6 +11,11 @@
 
 namespace NN {
 
+    struct TestInfo {
+        long correctPredictions;
+        long totalTests;
+    };
+
     class NeuralNetwork {
     public:
         NeuralNetwork() = default;
@@ -23,10 +28,10 @@ namespace NN {
                    const Eigen::MatrixXd& y,
                    int epochs,
                    int batchSize,
-                   double learningRate,
-                   const Loss& lossFunction);
+                   const Loss& lossFunction,
+                   const OptimizerParams& optimizerParams);
 
-        double evaluate(const Eigen::MatrixXd& X,
+        TestInfo evaluate(const Eigen::MatrixXd& X,
                         const Eigen::MatrixXd& y);
 
         void save(const std::string& filename) const;

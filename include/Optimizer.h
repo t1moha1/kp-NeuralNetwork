@@ -5,6 +5,13 @@
 #include <vector>
 
 namespace NN {
+    struct OptimizerParams {
+        double learningRate;
+        double beta1;
+        double beta2;
+        double epsilon;
+    };
+
     class AdamOptimizer {
     public:
         AdamOptimizer(int num_layers,

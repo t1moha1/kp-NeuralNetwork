@@ -17,7 +17,9 @@ add_executable(kp_NeuralNetwork scr/main.cpp
         scr/Optimizer.cpp
         include/NeuralNetwork.h
         include/Builder.h
-        include/MNISTLoader.h)
+        include/MNISTLoader.h
+        include/ConsoleApp.h
+)
 
 add_subdirectory(libs/eigen)
 

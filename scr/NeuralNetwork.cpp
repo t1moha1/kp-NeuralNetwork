@@ -18,10 +18,13 @@ Eigen::MatrixXd NeuralNetwork::predict(const Eigen::MatrixXd &X) const {
 }
 
 void NeuralNetwork::train(const Eigen::MatrixXd &X, const Eigen::MatrixXd &y,
-                          int epochs, int batchSize, double learningRate,
-                          const Loss &lossFunction) {
+                          int epochs, int batchSize,
+                          const Loss &lossFunction, const OptimizerParams& optimizerParams) {
+
   int numSamples = X.cols();
-  AdamOptimizer optimizer(layers.size(), learningRate);
+
+  AdamOptimizer optimizer(layers.size(), optimizerParams.learningRate, optimizerParams.beta1,
+      optimizerParams.beta2, optimizerParams.epsilon);
 
   for (int epoch = 0; epoch < epochs; ++epoch) {
     double totalLoss = 0;
@@ -61,10 +64,10 @@ void NeuralNetwork::train(const Eigen::MatrixXd &X, const Eigen::MatrixXd &y,
   }
 }
 
-double NeuralNetwork::evaluate(const Eigen::MatrixXd &X,
+TestInfo NeuralNetwork::evaluate(const Eigen::MatrixXd &X,
                                const Eigen::MatrixXd &y) {
   Eigen::MatrixXd pred = predict(X);
-  int correct = 0;
+  long correct = 0;
   for (int i = 0; i < pred.cols(); ++i) {
     Eigen::Index pi, yi;
     pred.col(i).maxCoeff(&pi);
@@ -72,7 +75,8 @@ double NeuralNetwork::evaluate(const Eigen::MatrixXd &X,
     if (pi == yi)
       ++correct;
   }
-  return static_cast<double>(correct) / pred.cols() * 100;
+    return {correct, pred.cols()};
+
 }
 
 void NeuralNetwork::save(const std::string &filename) const {
