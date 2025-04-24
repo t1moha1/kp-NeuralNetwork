@@ -19,6 +19,7 @@ add_executable(kp_NeuralNetwork scr/main.cpp
         include/Builder.h
         include/MNISTLoader.h
         include/ConsoleApp.h
+        scr/ConsoleApp.cpp
 )
 
 add_subdirectory(libs/eigen)

@@ -3,8 +3,7 @@
 namespace NN {
 
 NeuralNetwork::~NeuralNetwork() {
-  for (auto layer : layers)
-    delete layer;
+  for (auto layer : layers) delete layer;
 }
 
 void NeuralNetwork::addLayer(Layer *layer) { layers.push_back(layer); }
@@ -12,19 +11,18 @@ void NeuralNetwork::addLayer(Layer *layer) { layers.push_back(layer); }
 Eigen::MatrixXd NeuralNetwork::predict(const Eigen::MatrixXd &X) const {
   Eigen::MatrixXd output = X;
   Eigen::MatrixXd Z;
-  for (auto layer : layers)
-    output = layer->forward(output, Z);
+  for (auto layer : layers) output = layer->forward(output, Z);
   return output;
 }
 
 void NeuralNetwork::train(const Eigen::MatrixXd &X, const Eigen::MatrixXd &y,
-                          int epochs, int batchSize,
-                          const Loss &lossFunction, const OptimizerParams& optimizerParams) {
-
+                          int epochs, int batchSize, const Loss &lossFunction,
+                          const OptimizerParams &optimizerParams) {
   int numSamples = X.cols();
 
-  AdamOptimizer optimizer(layers.size(), optimizerParams.learningRate, optimizerParams.beta1,
-      optimizerParams.beta2, optimizerParams.epsilon);
+  AdamOptimizer optimizer(layers.size(), optimizerParams.learningRate,
+                          optimizerParams.beta1, optimizerParams.beta2,
+                          optimizerParams.epsilon);
 
   for (int epoch = 0; epoch < epochs; ++epoch) {
     double totalLoss = 0;
@@ -65,100 +63,98 @@ void NeuralNetwork::train(const Eigen::MatrixXd &X, const Eigen::MatrixXd &y,
 }
 
 TestInfo NeuralNetwork::evaluate(const Eigen::MatrixXd &X,
-                               const Eigen::MatrixXd &y) {
+                                 const Eigen::MatrixXd &y) {
   Eigen::MatrixXd pred = predict(X);
   long correct = 0;
   for (int i = 0; i < pred.cols(); ++i) {
     Eigen::Index pi, yi;
     pred.col(i).maxCoeff(&pi);
     y.col(i).maxCoeff(&yi);
-    if (pi == yi)
-      ++correct;
+    if (pi == yi) ++correct;
   }
-    return {correct, pred.cols()};
-
+  return {correct, pred.cols()};
 }
 
 void NeuralNetwork::save(const std::string &filename) const {
-    std::ofstream ofs(filename);
+  std::ofstream ofs(filename);
 
-    assert(ofs && "Cannot open file for saving");
-    assert(!layers.empty() && "No layers to save");
+  assert(ofs && "Cannot open file for saving");
+  assert(!layers.empty() && "No layers to save");
 
-    ofs << layers.size() << std::endl;
-    for (size_t i = 0; i < layers.size(); ++i) {
-        const auto &layer = layers[i];
+  ofs << layers.size() << std::endl;
+  for (size_t i = 0; i < layers.size(); ++i) {
+    const auto &layer = layers[i];
 
-        assert(layer && "Layer pointer is null");
+    assert(layer && "Layer pointer is null");
 
-        const Eigen::MatrixXd &W = layer->getWeights();
-        const Eigen::VectorXd &b = layer->getBiases();
+    const Eigen::MatrixXd &W = layer->getWeights();
+    const Eigen::VectorXd &b = layer->getBiases();
 
-        assert(W.rows() > 0 && W.cols() > 0 && "Invalid weight matrix size");
-        assert(b.size() == W.rows() && "Bias vector size must match weight rows");
+    assert(W.rows() > 0 && W.cols() > 0 && "Invalid weight matrix size");
+    assert(b.size() == W.rows() && "Bias vector size must match weight rows");
 
-        ofs << static_cast<int>(layer->getActivation().type)
-            << " " << W.rows() << " " << W.cols() << "\n";
+    ofs << static_cast<int>(layer->getActivation().type) << " " << W.rows()
+        << " " << W.cols() << "\n";
 
-        for (int r = 0; r < W.rows(); ++r) {
-            for (int c = 0; c < W.cols(); ++c) {
-                ofs << W(r, c) << " ";
-            }
-            ofs << "\n";
-        }
-        for (int idx = 0; idx < b.size(); ++idx) {
-            ofs << b(idx) << " ";
-        }
-        ofs << "\n";
+    for (int r = 0; r < W.rows(); ++r) {
+      for (int c = 0; c < W.cols(); ++c) {
+        ofs << W(r, c) << " ";
+      }
+      ofs << "\n";
     }
+    for (int idx = 0; idx < b.size(); ++idx) {
+      ofs << b(idx) << " ";
+    }
+    ofs << "\n";
+  }
 }
 
 void NeuralNetwork::load(const std::string &filename) {
-    std::ifstream ifs(filename);
+  std::ifstream ifs(filename);
 
-    assert(ifs && "Cannot open file for loading");
+  assert(ifs && "Cannot open file for loading");
 
-    for (auto l : layers) {
-        delete l;
+  for (auto l : layers) {
+    delete l;
+  }
+  layers.clear();
+
+  size_t numLayers = 0;
+  ifs >> numLayers;
+
+  assert(ifs && "Invalid format: cannot read layer count");
+  assert(numLayers > 0 && "Number of layers must be positive");
+
+  for (size_t i = 0; i < numLayers; ++i) {
+    int typeInt = 0;
+    int rows = 0, cols = 0;
+    ifs >> typeInt >> rows >> cols;
+
+    assert(ifs && "Invalid format at layer header");
+    assert(rows > 0 && cols > 0 && "Invalid matrix dimensions");
+
+    auto actType = static_cast<ActivationType>(typeInt);
+
+    assert(actType >= ActivationType::Sigmoid &&
+           actType <= ActivationType::Relu && "Unknown activation type");
+
+    Eigen::MatrixXd W(rows, cols);
+    for (int r = 0; r < rows; ++r) {
+      for (int c = 0; c < cols; ++c) {
+        ifs >> W(r, c);
+        assert(ifs && "Invalid weight data");
+      }
     }
-    layers.clear();
 
-    size_t numLayers = 0;
-    ifs >> numLayers;
-
-    assert(ifs && "Invalid format: cannot read layer count");
-    assert(numLayers > 0 && "Number of layers must be positive");
-
-    for (size_t i = 0; i < numLayers; ++i) {
-        int typeInt = 0;
-        int rows = 0, cols = 0;
-        ifs >> typeInt >> rows >> cols;
-
-        assert(ifs && "Invalid format at layer header");
-        assert(rows > 0 && cols > 0 && "Invalid matrix dimensions");
-
-        auto actType = static_cast<ActivationType>(typeInt);
-
-        assert(actType >= ActivationType::Sigmoid && actType <= ActivationType::Relu
-               && "Unknown activation type");
-
-        Eigen::MatrixXd W(rows, cols);
-        for (int r = 0; r < rows; ++r) {
-            for (int c = 0; c < cols; ++c) {
-                ifs >> W(r, c);
-                assert(ifs && "Invalid weight data");
-            }
-        }
-
-        Eigen::VectorXd b(rows);
-        for (int idx = 0; idx < rows; ++idx) {
-            ifs >> b(idx);
-            assert(ifs && "Invalid bias data");
-        }
-
-        Activation act = NN::createActivation(actType);
-        layers.push_back(new Layer(W, b, act));
+    Eigen::VectorXd b(rows);
+    for (int idx = 0; idx < rows; ++idx) {
+      ifs >> b(idx);
+      assert(ifs && "Invalid bias data");
     }
+
+    Activation act = NN::createActivation(actType);
+    layers.push_back(new Layer(W, b, act));
+  }
 }
 
-} // namespace NN
+}  // namespace NN

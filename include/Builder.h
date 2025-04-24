@@ -5,17 +5,19 @@
 
 namespace NN {
 
-    class Builder {
-    private:
-        NeuralNetwork* network;
-    public:
-        Builder();
-        ~Builder();
+class Builder {
+ private:
+  NeuralNetwork* network;
 
-        Builder& addLayer(int inputSize, int outputSize, const Activation& activation);
-        NeuralNetwork* build();
-    };
+ public:
+  Builder();
+  ~Builder();
 
-} // namespace NN
+  Builder& addLayer(int inputSize, int outputSize,
+                    const Activation& activation);
+  NeuralNetwork* build();
+};
 
-#endif // NN_BUILDER_H
+}  // namespace NN
+
+#endif  // NN_BUILDER_H
