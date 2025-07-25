@@ -1,29 +1,20 @@
-cmake_minimum_required(VERSION 3.30)
-project(kp_NeuralNetwork)
+cmake_minimum_required(VERSION 3.15)
+project(mainapp LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(kp_NeuralNetwork scr/main.cpp
-        include/Activation.h
-        include/Loss.h
-        include/Layer.h
-        scr/NeuralNetwork.cpp
-        scr/MNISTLoader.cpp
-        scr/Builder.cpp
-        scr/Layer.cpp
-        scr/Activation.cpp
-        scr/Loss.cpp
-        include/Optimizer.h
-        scr/Optimizer.cpp
-        include/NeuralNetwork.h
-        include/Builder.h
-        include/MNISTLoader.h
-        include/ConsoleApp.h
-        scr/ConsoleApp.cpp
+# 1) Добавляем подпроект-библиотеку
+add_subdirectory(${CMAKE_SOURCE_DIR}/neuralnetworklib
+                 ${CMAKE_BINARY_DIR}/build)
+
+# 2) Создаём исполняемый таргет
+add_executable(mainapp main.cpp)
+
+# 3) Прописывем include-путь (чтобы видеть ваши заголовки)
+target_include_directories(mainapp PRIVATE
+    ${CMAKE_SOURCE_DIR}/neuralnetworklib/include
 )
 
-add_subdirectory(libs/eigen)
-
-target_link_libraries(kp_NeuralNetwork PRIVATE Eigen3::Eigen)
-
-
+# 4) Линкуем библиотеку
+target_link_libraries(mainapp PRIVATE neuralnetworklib)

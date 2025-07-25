@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/tulinovtim/hse/kp-NeuralNetwork/neuralnetworklib/build/cmake_install.cmake",
+		"/Users/tulinovtim/hse/kp-NeuralNetwork/neuralnetworklib/build/libs/eigen/cmake_install.cmake",
+		"/Users/tulinovtim/hse/kp-NeuralNetwork/neuralnetworklib/build/libs/eigen/unsupported/cmake_install.cmake",
+		"/Users/tulinovtim/hse/kp-NeuralNetwork/neuralnetworklib/build/libs/eigen/unsupported/Eigen/cmake_install.cmake",
+		"/Users/tulinovtim/hse/kp-NeuralNetwork/neuralnetworklib/build/libs/eigen/unsupported/Eigen/CXX11/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
