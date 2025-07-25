@@ -37,3 +37,7 @@ make
 
 This will generate the `kp_NeuralNetwork` executable.
 
+## Tests on MNIST data
+
+![alt text](image.png)
+

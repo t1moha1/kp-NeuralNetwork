@@ -1,2 +1,0 @@
-/usr/bin/ar qc libneuralnetworklib.a CMakeFiles/neuralnetworklib.dir/src/NeuralNetwork.cpp.o CMakeFiles/neuralnetworklib.dir/src/MNISTLoader.cpp.o CMakeFiles/neuralnetworklib.dir/src/Builder.cpp.o CMakeFiles/neuralnetworklib.dir/src/Layer.cpp.o CMakeFiles/neuralnetworklib.dir/src/Activation.cpp.o CMakeFiles/neuralnetworklib.dir/src/Loss.cpp.o CMakeFiles/neuralnetworklib.dir/src/Optimizer.cpp.o
-/usr/bin/ranlib libneuralnetworklib.a
